@@ -1197,6 +1197,7 @@ var KeyframeAnimationEffect =
   AnimationEffect.call(this, constructorToken, operation, accumulateOperation);
   this.property = property;
   this.frames = new KeyframeList(constructorToken);
+  this.interpFuncs = {};
 };
 
 KeyframeAnimationEffect.prototype = createObject(
@@ -1271,12 +1272,18 @@ KeyframeAnimationEffect.prototype = createObject(
       afterFrame = frames[afterFrameNum];
       this.ensureRawValue(afterFrame);
     }
+
     // TODO: apply time function
     var localTimeFraction = (timeFraction - beforeFrame.offset) /
         (afterFrame.offset - beforeFrame.offset);
+
     // TODO: property-based interpolation for things that aren't simple
-    var animationValue = interpolate(this.property, beforeFrame.rawValue,
-        afterFrame.rawValue, localTimeFraction);
+    if (!(this.property in this.interpFuncs)) {
+      this.interpFuncs[this.property] = interpolateFunc(
+        this.property, beforeFrame.rawValue, afterFrame.rawValue);
+    }
+    var animationValue = this.interpFuncs[this.property](localTimeFraction);
+
     compositor.setAnimatedValue(target, this.property,
         new AnimatedResult(animationValue, this.operation, timeFraction));
   },
@@ -2374,34 +2381,36 @@ var composeMatrix = function() {
   return composeMatrix;
 }();
 
-function interpolateTransformsWithMatrices(from, to, f) {
+function interpolateTransformsWithMatrices(from, to) {
   var fromM = decomposeMatrix(convertToMatrix(from));
   var toM = decomposeMatrix(convertToMatrix(to));
 
   var product = dot(fromM.quaternion, toM.quaternion);
   product = Math.max(Math.min(product, 1.0), -1.0);
-  if (product == 1.0) {
-    var quat = fromM.quaternion;
-  } else {
-    var theta = Math.acos(product);
-    var w = Math.sin(f * theta) * 1 / Math.sqrt(1 - product * product);
+  return function(f) {
+    if (product == 1.0) {
+      var quat = fromM.quaternion;
+    } else {
+      var theta = Math.acos(product);
+      var w = Math.sin(f * theta) * 1 / Math.sqrt(1 - product * product);
 
-    var quat = [];
-    for (var i = 0; i < 4; i++) {
-      quat.push(fromM.quaternion[i] * (Math.cos(f * theta) - product * w) +
-                toM.quaternion[i] * w);
+      var quat = [];
+      for (var i = 0; i < 4; i++) {
+        quat.push(fromM.quaternion[i] * (Math.cos(f * theta) - product * w) +
+                  toM.quaternion[i] * w);
+      }
     }
-  }
 
-  var translate = interp(fromM.translate, toM.translate, f);
-  var scale = interp(fromM.scale, toM.scale, f);
-  var skew = interp(fromM.skew, toM.skew, f);
-  var perspective = interp(fromM.perspective, toM.perspective, f);
+    var translate = interp(fromM.translate, toM.translate, f);
+    var scale = interp(fromM.scale, toM.scale, f);
+    var skew = interp(fromM.skew, toM.skew, f);
+    var perspective = interp(fromM.perspective, toM.perspective, f);
 
-  return composeMatrix(translate, scale, skew, quat, perspective);
+    return composeMatrix(translate, scale, skew, quat, perspective);
+  };
 }
 
-function interpTransformValue(from, to, f) {
+function interpTransformValue(from, to) {
   var type = from.t ? from.t : to.t;
   switch(type) {
     case 'rotate':
@@ -2416,10 +2425,10 @@ function interpTransformValue(from, to, f) {
     case 'skew':
     case 'skewX':
     case 'skewY':
-      return {t: type, d:interp(from.d, to.d, f, type)};
-      break;
+      return function(f) { 
+        return {t: type, d:interp(from.d, to.d, f, type)};
+      };
     default:
-      var result = [];
       if (from.d && to.d) {
         var maxVal = Math.max(from.d.length, to.d.length);
       } else if (from.d) {
@@ -2427,13 +2436,15 @@ function interpTransformValue(from, to, f) {
       }  else {
         var maxVal = to.d.length;
       }
-      for (var j = 0; j < maxVal; j++) {
-        fromVal = from.d ? from.d[j] : {};
-        toVal = to.d ? to.d[j] : {};
-        result.push(lengthType.interpolate(fromVal, toVal, f));
-      }
-      return {t: type, d: result};
-      break;
+      return function(f) { 
+        var result = [];
+        for (var j = 0; j < maxVal; j++) {
+          fromVal = from.d ? from.d[j] : {};
+          toVal = to.d ? to.d[j] : {};
+          result.push(lengthType.interpolate(fromVal, toVal, f));
+        }
+        return {t: type, d: result};
+      };
   }
 }
 
@@ -2449,28 +2460,35 @@ function n(num) {
 var transformType = {
   zero: function(t) { throw 'UNIMPLEMENTED'; },
   add: function(base, delta) { return base.concat(delta); },
-  interpolate: function(from, to, f) {
-    var out = []
+
+  interpolateFunc: function(from, to) {
+    var tocall = [];
     for (var i = 0; i < Math.min(from.length, to.length); i++) {
       if (from[i].t != to[i].t) {
         break;
       }
-      out.push(interpTransformValue(from[i], to[i], f));
+      tocall.push(interpTransformValue(from[i], to[i]));
     }
 
     if (i < Math.min(from.length, to.length)) {
-      out.push(interpolateTransformsWithMatrices(from.slice(i), to.slice(i), 
-          f));
-      return out;
+      tocall.push(interpolateTransformsWithMatrices(from.slice(i), to.slice(i)));
     }
 
     for (; i < from.length; i++)
-      out.push(interpTransformValue(from[i], {t: null, d: null}, f));
+      tocall.push(interpTransformValue(from[i], {t: null, d: null}));
 
     for (; i < to.length; i++)
-      out.push(interpTransformValue({t: null, d: null}, to[i], f));
-    return out;
+      tocall.push(interpTransformValue({t: null, d: null}, to[i]));
+
+    return function(f) {
+      var out = [];
+      for (var j=0; j < tocall.length; j++) {
+        out.push(tocall[j](f));
+      }
+      return out;
+    };
   },
+
   toCssValue: function(value, svgMode) {
     // TODO: fix this :)
     var out = ''
@@ -2665,8 +2683,15 @@ var add = function(property, base, delta) {
  * e.g. interpolate('transform', elem, 'rotate(40deg)', 'rotate(50deg)', 0.3);
  *   will return 'rotate(43deg)'.
  */
-var interpolate = function(property, from, to, f) {
-  return getType(property).interpolate(from, to, f);
+var interpolateFunc = function(property, from, to) {
+  if (typeof getType(property).interpolateFunc === "undefined") {
+    var interpFunc = getType(property).interpolate;
+    return function (f) {
+      return interpFunc(from, to, f);
+    };
+  } else {
+    return getType(property).interpolateFunc(from, to);
+  }
 }
 
 /**
@@ -2693,6 +2718,7 @@ var AnimatedResult = function(value, operation, fraction) {
 var CompositedPropertyMap = function(target) {
   this.properties = {};
   this.target = target;
+  this.interpFuncs = {};
 };
 
 CompositedPropertyMap.prototype = {
@@ -2733,8 +2759,9 @@ CompositedPropertyMap.prototype = {
             baseValue = add(property, baseValue, inValue);
             continue;
           case 'merge':
-            baseValue = interpolate(property, baseValue, inValue,
-                resultList[i].fraction);
+            delete this.interpFuncs[property];
+            this.interpFuncs[property] = interpolateFunc(property, baseValue, inValue);
+            baseValue = this.interpFuncs[property](resultList[i].fraction);
             continue;
           }
         }
@@ -2755,6 +2782,7 @@ CompositedPropertyMap.prototype = {
 /** @constructor */
 var Compositor = function() {
   this.targets = []
+  this.interpFuncs = {}
 };
 
 Compositor.prototype = {
