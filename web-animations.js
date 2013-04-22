@@ -1197,7 +1197,6 @@ var KeyframeAnimationEffect =
   AnimationEffect.call(this, constructorToken, operation, accumulateOperation);
   this.property = property;
   this.frames = new KeyframeList(constructorToken);
-  this.interpFuncs = {};
 };
 
 KeyframeAnimationEffect.prototype = createObject(
@@ -1256,7 +1255,8 @@ KeyframeAnimationEffect.prototype = createObject(
     if (beforeFrameNum == -1) {
       beforeFrame = {
         rawValue: zero(this.property, frames[afterFrameNum].value),
-        offset: 0
+        offset: 0,
+        interpFuncs: {}
       };
     } else {
       beforeFrame = frames[beforeFrameNum];
@@ -1278,11 +1278,11 @@ KeyframeAnimationEffect.prototype = createObject(
         (afterFrame.offset - beforeFrame.offset);
 
     // TODO: property-based interpolation for things that aren't simple
-    if (!(this.property in this.interpFuncs)) {
-      this.interpFuncs[this.property] = interpolateFunc(
+    if (!(this.property in beforeFrame.interpFuncs)) {
+      beforeFrame.interpFuncs[this.property] = interpolateFunc(
         this.property, beforeFrame.rawValue, afterFrame.rawValue);
     }
-    var animationValue = this.interpFuncs[this.property](localTimeFraction);
+    var animationValue = beforeFrame.interpFuncs[this.property](localTimeFraction);
 
     compositor.setAnimatedValue(target, this.property,
         new AnimatedResult(animationValue, this.operation, timeFraction));
@@ -1311,6 +1311,7 @@ KeyframeAnimationEffect.prototype = createObject(
 var Keyframe = function(value, offset, timingFunction) {
   this.value = value;
   this.rawValue = null;
+  this.interpFuncs = {};
   this.offset = offset;
   this.timingFunction = timingFunction;
 };
@@ -2782,7 +2783,6 @@ CompositedPropertyMap.prototype = {
 /** @constructor */
 var Compositor = function() {
   this.targets = []
-  this.interpFuncs = {}
 };
 
 Compositor.prototype = {

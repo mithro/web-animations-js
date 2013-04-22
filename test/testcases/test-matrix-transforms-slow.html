@@ -1,0 +1,202 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.anim {
+  background-color: lightsteelblue;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  top: 100px;
+  left: 0px;
+}
+
+#a {
+  top: 100px;
+}
+#b {
+  top: 200px;
+}
+#c {
+  top: 300px;
+}
+#d {
+  top: 400px;
+}
+#e {
+  top: 500px;
+}
+#f {
+  top: 600px;
+}
+#g {
+  top: 700px;
+}
+#h {
+  top: 800px;
+}
+#i {
+  top: 900px;
+}
+#j {
+  top: 1000px;
+}
+#k {
+  top: 1100px;
+}
+#l {
+  top: 1200px;
+}
+#m {
+  top: 1300px;
+}
+#n {
+  top: 1400px;
+}
+#o {
+  top: 1500px;
+}
+#p {
+  top: 1600px;
+}
+#q {
+  top: 1700px;
+}
+#r {
+  top: 1800px;
+}
+#s {
+  top: 1900px;
+}
+#t {
+  top: 2000px;
+}
+#u {
+  top: 2100px;
+}
+#v {
+  top: 2200px;
+}
+#w {
+  top: 2300px;
+}
+#x {
+  top: 2400px;
+}
+#y {
+  top: 2500px;
+}
+#z {
+  top: 2600px;
+}
+
+div.anim {
+  -webkit-transform: scale(0.5);
+  -moz-transform: scale(0.5);
+  transform: scale(0.5);
+}
+
+.expectation {
+  fill: red;
+}
+</style>
+<div class="anim" id="a"></div>
+<div class="anim" id="b"></div>
+<div class="anim" id="c"></div>
+<div class="anim" id="d"></div>
+<div class="anim" id="e"></div>
+<div class="anim" id="f"></div>
+<div class="anim" id="g"></div>
+<div class="anim" id="h"></div>
+<div class="anim" id="i"></div>
+<div class="anim" id="j"></div>
+<div class="anim" id="k"></div>
+<div class="anim" id="l"></div>
+<div class="anim" id="m"></div>
+<div class="anim" id="n"></div>
+<div class="anim" id="o"></div>
+<div class="anim" id="p"></div>
+<div class="anim" id="q"></div>
+<div class="anim" id="r"></div>
+<div class="anim" id="s"></div>
+<div class="anim" id="t"></div>
+<div class="anim" id="u"></div>
+<div class="anim" id="v"></div>
+<div class="anim" id="w"></div>
+<div class="anim" id="x"></div>
+<div class="anim" id="y"></div>
+<div class="anim" id="z"></div>
+
+<script src="../../web-animations.js"></script>
+<!-- <script src="../anim-test-pre.js"></script> -->
+<script>
+var a = document.querySelector("#a")
+var b = document.querySelector("#b")
+var c = document.querySelector("#c")
+var d = document.querySelector("#d")
+var e = document.querySelector("#e")
+var f = document.querySelector("#f")
+var g = document.querySelector("#g")
+var h = document.querySelector("#h")
+var i = document.querySelector("#i")
+var j = document.querySelector("#j")
+var k = document.querySelector("#k")
+var l = document.querySelector("#l")
+var m = document.querySelector("#m")
+var n = document.querySelector("#n")
+var o = document.querySelector("#o")
+var p = document.querySelector("#p")
+var q = document.querySelector("#q")
+var r = document.querySelector("#r")
+var s = document.querySelector("#s")
+var t = document.querySelector("#t")
+var u = document.querySelector("#u")
+var v = document.querySelector("#v")
+var w = document.querySelector("#w")
+var x = document.querySelector("#x")
+var y = document.querySelector("#y")
+var z = document.querySelector("#z")
+
+var dt = document.timeline;
+
+dt.play(new Animation(a, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(b, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(c, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(d, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(e, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(f, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(g, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(h, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(i, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(j, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(k, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(l, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(m, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(n, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(o, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(p, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(q, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(r, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(s, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(t, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(u, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(v, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(w, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(x, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(y, {transform: "translate(100px)"}, 2));
+dt.play(new Animation(z, {transform: "translate(100px)"}, 2));
+</script>

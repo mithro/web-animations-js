@@ -51,4 +51,5 @@ var tests = [
   'test-unpause.html',
   'test-visibility.html',
   'test-wrapping-bug.html',
+  'test-matrix-transforms-slow.html',
 ];
