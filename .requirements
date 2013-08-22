@@ -2,6 +2,8 @@ testtools>=0.9.30
 python-subunit # subunit
 selenium
 
+closure-linter
+
 # Requirements for using -x
 pyvirtualdisplay
 pyscreenshot
