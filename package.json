@@ -1,0 +1,33 @@
+{
+  "name": "web-animations-js",
+  "version": "0.0.0",
+  "description": "An emulator of the Web Animations specification. Please note that this is still experimental, and that the specification is likely to change in the future.",
+  "main": "web-animations.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/web-animations/web-animations-js"
+  },
+  "keywords": [
+    "animation",
+    "tween",
+    "css",
+    "web",
+    "javascript"
+  ],
+  "author": "",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/web-animations/web-animations-js/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-audit": "~0.0.1",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-yuidoc": "*",
+    "grunt-saucelabs": "*",
+    "grunt-closure-linter": "https://github.com/wzr1337/grunt-closure-linter/tarball/master"
+  }
+}
