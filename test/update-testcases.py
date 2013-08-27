@@ -1,10 +1,14 @@
 #!/usr/bin/python
 
 import cStringIO as StringIO
+import collections
 from fnmatch import fnmatch
 import difflib
+import pprint
 import os
+import re
 import sys
+import simplejson
 
 
 def get_name(filename):
@@ -19,12 +23,45 @@ def main():
     test_dir = os.path.dirname(os.path.realpath(__file__))
     testcase_dir = os.path.join(test_dir, 'testcases')
     testcase_file = os.path.join(test_dir, 'testcases.js')
+    expected_failures_file = os.path.join(test_dir, 'expected_failures.js')
 
     def is_testcase_file(filename):
         return (
             fnmatch(filename, "*.html") and
             not fnmatch(filename, "manual-test*") and
             not fnmatch(filename, "disabled-*"))
+
+    failures = collections.defaultdict(lambda: 0)
+    for f in list_dir(testcase_dir, is_testcase_file):
+       failures['all'] += 1
+       if f == "unit-test-testharness-failure.html":
+          continue
+       m = re.search(
+          r'var expected_failures = ({[^;]*);',
+          open(os.path.join(testcase_dir, f)).read())
+
+       if m:
+          test_failures = re.findall('{[^}]*}', m.groups()[0][1:-1])
+
+          # Strip out the messages
+          fails_on = {}
+          for i, test_failure in enumerate(test_failures):
+            for key, value in re.findall('([^:]*):(.*)', test_failure[1:-1]):
+              key = key.strip()
+              value = value.strip()
+
+              if key.strip() == 'message':
+                continue
+
+              if value[-1] == ',':
+                value = value[:-1]
+              fails_on[key] = value
+          for failure in fails_on:
+             failures[failure] += 1
+          print f, ' ',
+          pprint.pprint(fails_on)
+    pprint.pprint(dict(failures))
+
 
     new_testcases = StringIO.StringIO()
     new_testcases.write("""\
