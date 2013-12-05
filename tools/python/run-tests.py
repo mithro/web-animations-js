@@ -613,8 +613,6 @@ if args.browser == "Chrome":
     # See https://code.google.com/p/chromium/issues/detail?id=31077 for more
     # information.
     if 'TRAVIS' in os.environ:
-        driver_arguments['chrome_options'].add_argument('--no-sandbox')
-        driver_arguments['chrome_options'].add_argument('--disable-setuid-sandbox')
         driver_arguments['chrome_options'].add_argument('--allow-sandbox-debugging')
 
 elif args.browser == "Firefox":

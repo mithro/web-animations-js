@@ -38,14 +38,15 @@ Chrome)
 	which google-chrome
 	ls -l `which google-chrome`
 	
-	echo "Checking for PID namespace support, needed for sandboxing"
-	gcc -o pidnamespaces_test tools/pidnamespaces_test.c
-	
-	if sudo ./pidnamespaces_test; then
+	# If we don't have PID namespace support, download a custom
+	# chrome-sandbox which works even without it.
+	echo "Checking for namespace support, needed for sandboxing"
+	NSTEST=/tmp/clone_namespaces_test
+	gcc -o $NSTEST tools/clone_namespaces_test.c
+	sudo chown root:root $NSTEST; sudo chmod 4755 $NSTEST
+	if $NSTEST; then
 		echo "No need to modify the sandbox."
 	else
-		# If we don't have PID namespace support, download a custom
-		# chrome-sandbox which works even without it.
 		if [ -f /opt/google/chrome/chrome-sandbox ]; then
 			export CHROME_SANDBOX=/opt/google/chrome/chrome-sandbox
 		else
@@ -55,6 +56,7 @@ Chrome)
 		sudo rm -f $CHROME_SANDBOX
 		sudo wget https://googledrive.com/host/0B5VlNZ_Rvdw6NTJoZDBSVy1ZdkE -O $CHROME_SANDBOX
 		sudo chown root:root $CHROME_SANDBOX; sudo chmod 4755 $CHROME_SANDBOX
+		sudo ls -l $CHROME_SANDBOX
 		sudo md5sum $CHROME_SANDBOX
 	fi
 	
