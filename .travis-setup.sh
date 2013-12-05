@@ -38,19 +38,27 @@ Chrome)
 	which google-chrome
 	ls -l `which google-chrome`
 	
-	if [ -f /opt/google/chrome/chrome-sandbox ]; then
-		export CHROME_SANDBOX=/opt/google/chrome/chrome-sandbox
+	echo "Checking for PID namespace support, needed for sandboxing"
+	gcc -o pidnamespaces_test tools/pidnamespaces_test.c
+	
+	if sudo ./pidnamespaces_test; then
+		echo "No need to modify the sandbox."
 	else
-		export CHROME_SANDBOX=$(ls /opt/google/chrome*/chrome-sandbox)
+		# If we don't have PID namespace support, download a custom
+		# chrome-sandbox which works even without it.
+		if [ -f /opt/google/chrome/chrome-sandbox ]; then
+			export CHROME_SANDBOX=/opt/google/chrome/chrome-sandbox
+		else
+			export CHROME_SANDBOX=$(ls /opt/google/chrome*/chrome-sandbox)
+		fi
+		
+		sudo rm -f $CHROME_SANDBOX
+		sudo wget https://googledrive.com/host/0B5VlNZ_Rvdw6NTJoZDBSVy1ZdkE -O $CHROME_SANDBOX
+		sudo chown root:root $CHROME_SANDBOX; sudo chmod 4755 $CHROME_SANDBOX
+		sudo md5sum $CHROME_SANDBOX
 	fi
 	
-	# Download a custom chrome-sandbox which works inside OpenVC containers (used on travis).
-	sudo rm -f $CHROME_SANDBOX
-	sudo wget https://googledrive.com/host/0B5VlNZ_Rvdw6NTJoZDBSVy1ZdkE -O $CHROME_SANDBOX
-	sudo chown root:root $CHROME_SANDBOX; sudo chmod 4755 $CHROME_SANDBOX
-	sudo md5sum $CHROME_SANDBOX
-	
-	google-chrome --version
+	google-chrome --version --allow-sandbox-debugging
 	;;
 
 Firefox)
